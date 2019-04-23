@@ -8,18 +8,27 @@
 import scrapy
 
 
-class MeituanItem(scrapy.Item):
+class MeituanItem:  # (scrapy.Item):
     '''
     This is the information you want from website
     '''
-    # define the fields for your item here like:
-    dish_type = scrapy.Field()
-    restaurant_name = scrapy.Field()
-    location = scrapy.Field()
-    price = scrapy.Field()
-    star = scrapy.Field()
-    img_url = scrapy.Field()
-    comment_num = scrapy.Field()
+
+    # dish_type = scrapy.Field()
+    # restaurant_name = scrapy.Field()
+    # location = scrapy.Field()
+    # price = scrapy.Field()
+    # star = scrapy.Field()
+    # img_url = scrapy.Field()
+    # comment_num = scrapy.Field()
+
+    def __init__(self):
+        self.dish_type = None
+        self.restaurant_name = None
+        self.location = None
+        self.price = None
+        self.star = None
+        self.img_url = None
+        self.comment_num = None
 
     def to_json(self):
         return {

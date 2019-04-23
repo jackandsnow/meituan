@@ -3,6 +3,11 @@ import zlib
 
 from datetime import datetime
 
+import requests
+
+from meituan.items import MeituanItem
+from meituan.property import simulateBrowserHeader
+
 
 # 解析token
 def decode_token(token):
@@ -51,3 +56,58 @@ def str_replace(string):
         .replace('+', '%2B') \
         .replace('=', '%3D') \
         .replace(':', '%3A')
+
+
+# get category id
+def get_cateId(link_url):
+    splits = link_url.split('/')
+    return splits[-2].replace('c', '')
+
+
+# call interface to get json data
+def call_interface(page, originUrl):
+    cityName = '广州'
+    cate_id = get_cateId(originUrl)
+    originUrl = str_replace(originUrl)
+    token = str_replace(encode_token())
+
+    url = 'https://gz.meituan.com/meishi/api/poi/getPoiList?' \
+          'cityName=%s' \
+          '&cateId=%s' \
+          '&areaId=0' \
+          '&sort=' \
+          '&dinnerCountAttrId=' \
+          '&page=%s' \
+          '&userId=' \
+          '&uuid=05bf3db6-3c2f-41cd-a4ec-ed79ae0a9506' \
+          '&platform=1' \
+          '&partner=126' \
+          '&originUrl=%s' \
+          '&riskLevel=1' \
+          '&optimusCode=1' \
+          '&_token=%s' % (cityName, cate_id, page, originUrl, token)
+
+    response = requests.get(url, headers=simulateBrowserHeader)
+    if response.status_code == 200:
+        data = response.json()['data']
+        return data
+
+    if response.status_code == 403:
+        print('Access is denied by server!')
+        return {}
+
+
+# get food detail from poiInfos
+def get_food_list(category, poiInfos):
+    item_list = []
+    for i in range(0, len(poiInfos)):
+        item = MeituanItem()
+        item.dish_type = category
+        item.restaurant_name = poiInfos[i]['title']
+        item.location = poiInfos[i]['address']
+        item.price = poiInfos[i]['avgPrice']
+        item.star = poiInfos[i]['avgScore']
+        item.img_url = poiInfos[i]['frontImg']
+        item.comment_num = poiInfos[i]['allCommentNum']
+        item_list.append(item.to_json())
+    return item_list

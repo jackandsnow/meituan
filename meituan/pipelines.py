@@ -8,8 +8,4 @@
 
 class MeituanPipeline(object):
     def process_item(self, item, spider):
-        self.print_item(item)
-        return item
-
-    def print_item(self, item):
-        print(item.to_json())
+        pass
