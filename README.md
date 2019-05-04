@@ -15,5 +15,5 @@ This project is aiming to crawl food data from meituan's website.
 
 4. Run project:
   After your environment is ready, you just need to run "scrapy crawl food" in terminal or cmd window.
-  Also, you can run 'python3 meituan/__init__.py' in the project directory.
+  Also, you can run 'python3 meituan/\_\_init__.py' in the project directory.
   And then you can get the food data of meituan in your database.
