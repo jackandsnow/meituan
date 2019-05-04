@@ -22,6 +22,7 @@ class MeituanItem:  # (scrapy.Item):
     # comment_num = scrapy.Field()
 
     def __init__(self):
+        self.pk_id = None
         self.dish_type = None
         self.restaurant_name = None
         self.location = None
@@ -32,6 +33,7 @@ class MeituanItem:  # (scrapy.Item):
 
     def to_json(self):
         return {
+            'pk_id': self.pk_id,
             'dish_type': self.dish_type,
             'restaurant_name': self.restaurant_name,
             'location': self.location,

@@ -8,35 +8,31 @@ from scrapy import Request
 from meituan.util import call_interface, get_food_list
 
 
-def write_json(data, no):
-    with open('data' + str(no) + '.json', 'w') as f:
-        dic = {'data': data}
-        json.dump(dic, f, ensure_ascii=False)
-        print('Save data into json file successfully!')
-        f.close()
-
-
+# write data into mysql database
 def write_to_db(item_list):
     conn = pymysql.Connect(
         host='127.0.0.1',
         port=3306,
         user='root',
-        password='123456',
+        password='jack123456',
         database='meituan',
         charset='utf8')
-
     cursor = conn.cursor()
-    for i in range(0, len(item_list)):
-        sql = 'INSERT INTO '
-        pass
-    # 使用 execute()  方法执行 SQL 查询
-    cursor.execute("SELECT VERSION()")
-    # 使用 fetchone() 方法获取单条数据.
-    data = cursor.fetchone()
-    print("Database version : %s " % data)
 
+    for item in item_list:
+        sql = 'INSERT INTO TB_RESTAURANTS(pk_id, dish_type, restaurant_name, location, price, star, img_url,' \
+              ' comment_num) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+        params = (item.pk_id, item.dish_type, item.restaurant_name, item.location, item.price, item.star, item.img_url,
+                  item.comment_num)
+        # 执行SQL
+        cursor.execute(sql, params)
+        # 提交数据
+        conn.commit()
+    # 关闭游标
+    cursor.close()
+    # 关闭连接
     conn.close()
-
+    print('Write data into MySQL database successfully!')
 
 
 class FoodSpider(scrapy.Spider):
@@ -49,28 +45,27 @@ class FoodSpider(scrapy.Spider):
         dish_url_list = response.xpath('//*[@id="app"]//*[@data-reactid="20"]/li/a/@href').extract()
         # print(dish_url_list)
 
-        for i in range(0, 1):  # len(dish_url_list)):
-            yield Request(dish_url_list[i], callback=self.parse_food)
+        # traverse each dish_url to get food data
+        for dish_url in dish_url_list:
+            yield Request(dish_url, callback=self.parse_food)
 
     def parse_food(self, response):
-        data_list = []
-        originUrl = response.url
-        print('crawl food from ' + originUrl)
+        origin_url = response.url
+        print('crawl food from ' + origin_url)
         dish_type = response.xpath('//*[@id="app"]//*[@class="hasSelect"]/span[2]/text()').extract()[0]
-        tdata = call_interface(1, originUrl)
-        # data_list.append(tdata)
-        # for i in range(0, len(data_list)):
-        data_list = get_food_list(dish_type, tdata['poiInfos'])
+        re_data = call_interface(1, origin_url)
+        data_list = get_food_list(dish_type, re_data['poiInfos'])
         # calculate how many pages
-        # if tdata['totalCounts'] % 15 == 0:
-        #     page_num = tdata['totalCounts'] // 15
-        # else:
-        #     page_num = tdata['totalCounts'] // 15 + 1
-        # print(page_num)
-        #
-        # for page in range(2, 5):#page_num + 1):
-        #     data_list.append(call_interface(page, originUrl))
-        write_json(data_list, 1)
+        if re_data['totalCounts'] % 15 == 0:
+            page_num = re_data['totalCounts'] // 15
+        else:
+            page_num = re_data['totalCounts'] // 15 + 1
+
+        for page in range(2, page_num + 1):
+            re_data = call_interface(page, origin_url)
+            data_list.extend(get_food_list(dish_type, re_data['poiInfos']))
+
+        write_to_db(data_list)
 
         # item装载器工具
         # loader = ItemLoader(item=MeituanItem(), response=response)

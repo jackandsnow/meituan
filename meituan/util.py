@@ -1,4 +1,5 @@
 import base64
+import uuid
 import zlib
 
 from datetime import datetime
@@ -6,7 +7,16 @@ from datetime import datetime
 import requests
 
 from meituan.items import MeituanItem
-from meituan.property import simulateBrowserHeader
+
+simulateBrowserHeader = {
+    'Accept': '*/*',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'zh-CN,zh;q=0.9',
+    'Connection': 'keep-alive',
+    'Host': 'gz.meituan.com',
+    'Referer': 'https://gz.meituan.com/meishi/',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'
+}
 
 
 # 解析token
@@ -102,12 +112,13 @@ def get_food_list(category, poiInfos):
     item_list = []
     for i in range(0, len(poiInfos)):
         item = MeituanItem()
+        item.pk_id = str(uuid.uuid1())
         item.dish_type = category
         item.restaurant_name = poiInfos[i]['title']
         item.location = poiInfos[i]['address']
-        item.price = poiInfos[i]['avgPrice']
-        item.star = poiInfos[i]['avgScore']
+        item.price = 0 if poiInfos[i]['avgPrice'] is None else int(poiInfos[i]['avgPrice'])
+        item.star = float(poiInfos[i]['avgScore'])
         item.img_url = poiInfos[i]['frontImg']
-        item.comment_num = poiInfos[i]['allCommentNum']
-        item_list.append(item.to_json())
+        item.comment_num = int(poiInfos[i]['allCommentNum'])
+        item_list.append(item)
     return item_list
