@@ -47,7 +47,7 @@ class FoodSpider(scrapy.Spider):
 
         # traverse each dish_url to get food data
         for dish_url in dish_url_list:
-            yield Request(dish_url, callback=self.parse_food)
+            yield Request(dish_url.replace('http', 'https'), callback=self.parse_food)
 
     def parse_food(self, response):
         origin_url = response.url
